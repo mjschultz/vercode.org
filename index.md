@@ -1,4 +1,4 @@
-## `vercode ░:▝:█`
+## `vercode ░:▝:█!🉐`
 
 vercode is compatible with semver, but less restrictive.
 
