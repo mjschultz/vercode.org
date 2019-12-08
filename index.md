@@ -1,37 +1,72 @@
-## Welcome to GitHub Pages
+## `vercode ░:▝:█`
 
-You can use the [editor on GitHub](https://github.com/mjschultz/vercode.org/edit/master/index.md) to maintain and preview the content for your website in Markdown files.
+vercode is compatible with semver, but less restrictive.
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+### Specification
 
-### Markdown
+1. Versions MUST BE sorted in codepoint order.
+2. A vercode `<series>` is increased when there is a breaking API change.
+3. A vercode `<series>:<feature>` adds features to an API but does not break the existing API.
+4. A vercode `<series>:<feature>:<fix>` fixes the software in an API compatible with that feature level.
+5. A vercode MUST BE a fully specified `<series>:<feature>:<fix>`.
+6. A vercode MAY HAVE a prerelease, signified by "!" to denote danger.
+7. A vercode MAY HAVE a build id, signified by "Δ" to denote a different build of the same `<vercode>`.
+8. A `<unicode identifier>` is any unicode character except "!", "Δ", or ":" as those are reserved separators.
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+### (Modified) Backus–Naur Form Grammar for vercode versioning
+
+A <unicode identifier> is any unicode character except "!", "Δ", or ":" as those are reserved separators.
 
 ```markdown
-Syntax highlighted code block
+<vercode> ::= <vercode base>
+            | <vercode base> "!" <pre-release>
+            | <vercode base> "Δ" <build>
+            | <vercode base> "!" <pre-release> "Δ" <build>
 
-# Header 1
-## Header 2
-### Header 3
+<vercode base> ::= <series> ":"" <feature> ":"" <fix>
 
-- Bulleted
-- List
+<series> :: = <unicode identifier>
 
-1. Numbered
-2. List
+<feature> :: = <unicode identifier>
 
-**Bold** and _Italic_ and `Code` text
+<patch> :: = <unicode identifier>
 
-[Link](url) and ![Image](src)
+<pre-release> ::= <unicode identifier>
+                | <unicode identifier> <pre-release>
+
+<build> ::= <unicode identifier>
+          | <unicode identifier> <build>
+
+<unicode identifier> ::= <any unicode codepoint - "!" - ":" - "Δ">
 ```
 
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
+### Generate Unicode Identifiters
 
-### Jekyll Themes
+Since there are multitudes of Unicode characters, we provide scripts to generate the character sets locally.
 
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/mjschultz/vercode.org/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
+#### Python 3
 
-### Support or Contact
+```python
+from itertools import count
+from unicodedata import category, name
 
-Having trouble with Pages? Check out our [documentation](https://help.github.com/categories/github-pages-basics/) or [contact support](https://github.com/contact) and we’ll help you sort it out.
+RESERVED_CHARACTERS = {"!", ":", "Δ"}
+
+def clean_name(c):
+    try:
+        uname = name(c)
+    except ValueError as e:
+        assert str(e) == 'no such name'
+        uname = str(e)
+    return uname
+
+
+for i in count():
+    try:
+        c = chr(i)
+    except ValueError:
+        break
+    if c in RESERVED_CHARACTERS:
+        continue
+    print(f'{i:>7} {hex(i):>8} {category(c)} {clean_name(c)}')
+```
